@@ -6,6 +6,7 @@ import cookielib
 import random
 import time
 import logging
+import tempfile
 
 logger = logging.getLogger(__name__)
 
@@ -126,7 +127,8 @@ class Leechi(object):
     # TODO: do we want to lose the cookies when re-creating the opener with a different UA?
     if self.useCookies:
       # use LWPCookieJar to persist cookies to disk
-      cookieJar = cookielib.LWPCookieJar("/tmp/nomnomnom")
+      
+      cookieJar = cookielib.LWPCookieJar(tempfile.mkstemp()[1])
       self.cookieJar = cookieJar
       processor = urllib2.HTTPCookieProcessor(cookieJar)
       opener = urllib2.build_opener(processor)
