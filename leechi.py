@@ -73,9 +73,15 @@ class Leechi(object):
     self.ua = UA
     self._createOpener()
 
+  """
+  Returns current User Agent string.
+  """
   def getCurrentUA(self):
     return self.ua
 
+  """
+  Fetches content of URL.
+  """
   def fetch(self, URL):
     # I was under the impression that read() may not always return the entire
     # content of the file-like object.
@@ -87,7 +93,7 @@ class Leechi(object):
     
   
   """
-  Fetch content of URL after waiting for a random amount of time.
+  Fetches content of URL after waiting for a random amount of time.
   The delay will be between 0 and 3 seconds by default.
   The upper and lower bounds are configurable.
   """
