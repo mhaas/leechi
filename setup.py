@@ -4,7 +4,7 @@
 from distutils.core import setup
 
 setup(name='Leechi',
-      version='0.1',
+      version='0.2',
       description='Website crawler utility',
       author='Michael Haas',
       author_email='haas@computerlinguist.org',
@@ -32,6 +32,8 @@ It is robust because it will automatically retry failed requests.
 
 Additionally, it will handle cookies to make session handling
 easier or even automatic.
+
+See website for usage information.
 
 Leechi development was sponsored by the Forschungsdaten Service Center
 of Universität Mannheim, Germany <http://service.informatik.uni-mannheim.de/>.
