@@ -93,7 +93,7 @@ class Leechi(object):
     # in "non-blocking mode". So let's hope this file-like object is in
     # blocking mode..
     handle = self.obtainHandle(URL)
-    return Leechi._handleError(lambda: handle.read(), tries=self._tries, msg="Fetching URL %s" % URL)
+    return self._handleError(lambda: handle.read(), tries=self._tries, msg="Fetching URL %s" % URL)
     
   
   """
@@ -103,7 +103,7 @@ class Leechi(object):
   """
   # TODO: make delay and mindelay configurable via ctor?
   def fetchDelayed(self, URL, delay=DELAY, mindelay=MINDELAY):
-    Leechi._sleep()
+    self._sleep()
     return self.fetch(URL)
 
   # Do not use the opener member. Use this method to obtain a file handle for you
@@ -117,14 +117,14 @@ class Leechi(object):
     self._lastTry = time.time()
     logger.debug("URL is: %s",  URL)
     logger.debug("params is: %s", params)
-    return Leechi._handleError(lambda: self.opener.open(URL, params), tries=self._tries, msg="Obtaining handle for URL %s" % URL)
+    return self._handleError(lambda: self.opener.open(URL, params), tries=self._tries, msg="Obtaining handle for URL %s" % URL)
 
   """
   Returns file-like object after sleeping for a while.
   """
   # similar to fetchDelayed(), this will block so you don't have to
   def obtainHandleDelayed(self, URL, delay=DELAY, mindelay=MINDELAY, params=""):
-    Leechi._sleep(delay, mindelay)
+    self._sleep(delay, mindelay)
     return self.obtainHandle(URL, params)
 
   def _createOpener(self):
@@ -143,20 +143,21 @@ class Leechi(object):
     opener.addheaders = [("User-Agent", self.ua), ("Accept", "*/*")]
     self.opener = opener
 
-  @staticmethod
-  def _sleep(delay=DELAY, mindelay=MINDELAY):
+  def _sleep(self, delay=DELAY, mindelay=MINDELAY):
     if self.useNewSleep:
       delay = self._lastTry + delay - time.time()
+      logger.debug("Using new sleep mechanism; delay is %s", delay)
+    if not delay > 0:
+      return
     time.sleep(random.uniform(mindelay, delay))
 
-  @staticmethod
-  def _handleError(function, tries, msg="Unspecified"):
+  def _handleError(self, function, tries, msg="Unspecified"):
     for trial in xrange(tries):
       try:
         return function()
       except urllib2.URLError,e:
         exception=e
-        Leechi._sleep()
+        self._sleep()
         logger.info("Caught exception, try %s/%s. Action was: %s" % (trial,tries, msg))
         logger.exception(e)
         # for some reason, any exception in the following block gets logged
