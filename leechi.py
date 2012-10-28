@@ -7,6 +7,7 @@ import random
 import time
 import logging
 import tempfile
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +54,9 @@ class Leechi(object):
   def __init__(self, cookies=True, retry=3):
     # pick user agent string. will persist for the lifetime of the object
     self.useCookies = cookies
+    self.useNewSleep = True
     self._tries = retry + 1
+    self._lastTry = 0
     self.chooseRandomUA()
 
   """
@@ -111,6 +114,7 @@ class Leechi(object):
   Returns file-like object.
   """
   def obtainHandle(self, URL, params=""):
+    self._lastTry = time.time()
     logger.debug("URL is: %s",  URL)
     logger.debug("params is: %s", params)
     return Leechi._handleError(lambda: self.opener.open(URL, params), tries=self._tries, msg="Obtaining handle for URL %s" % URL)
@@ -141,6 +145,8 @@ class Leechi(object):
 
   @staticmethod
   def _sleep(delay=DELAY, mindelay=MINDELAY):
+    if self.useNewSleep:
+      delay = self._lastTry + delay - time.time()
     time.sleep(random.uniform(mindelay, delay))
 
   @staticmethod
