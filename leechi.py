@@ -58,6 +58,7 @@ class Leechi(object):
     self._tries = retry + 1
     self._lastTry = 0
     self.multiPart = multiPart
+    self.referer = None
     self.chooseRandomUA()
 
   """
@@ -83,6 +84,23 @@ class Leechi(object):
   """
   def getCurrentUA(self):
     return self.ua
+
+  def setReferer(self, referer):
+    """Sets custom Referer string.
+
+    If referer is set to None, no Referer header
+    will be sent.
+    @param referer Referer string or None
+    """
+    self.referer = referer
+    self._createOpener()
+
+  def getReferer(self):
+    """Returns current custom Referer.
+
+    @returns current custom Referer or None
+    """
+    return self.referer
 
   """
   Fetches content of URL.
@@ -146,7 +164,10 @@ class Leechi(object):
     else:
         opener = urllib2.build_opener(*handlers)
     # Accept */* is needed for some websites
-    opener.addheaders = [("User-Agent", self.ua), ("Accept", "*/*")]
+    headers = [("User-Agent", self.ua), ("Accept", "*/*")]
+    if self.referer is not None:
+	headers.append(('Referer', self.referer))
+    opener.addheaders = headers
     self.opener = opener
 
   def _sleep(self, delay=DELAY, mindelay=MINDELAY):
