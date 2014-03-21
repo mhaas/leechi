@@ -57,7 +57,7 @@ class Leechi(object):
     self.useNewSleep = True
     self._tries = retry + 1
     self._lastTry = 0
-    self.multiPart = True
+    self.multiPart = multiPart
     self.chooseRandomUA()
 
   """
@@ -144,7 +144,7 @@ class Leechi(object):
         # fall back to default python configuration
         opener = urllib2.build_opener()
     else:
-        opener = urllib2.build_opener(handlers)
+        opener = urllib2.build_opener(*handlers)
     # Accept */* is needed for gh
     opener.addheaders = [("User-Agent", self.ua), ("Accept", "*/*")]
     self.opener = opener
