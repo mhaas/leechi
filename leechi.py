@@ -132,8 +132,8 @@ class Leechi(object):
     # TODO: do we want to lose the cookies when re-creating the opener with a different UA?
     handlers = []
     if self.multiPart:
-        from MultiPartPostHandler import MultiPartPostHandler
-    	handlers.append(MultiPartPostHandler())
+        from MultipartPostHandler import MultipartPostHandler
+    	handlers.append(MultipartPostHandler())
     if self.useCookies:
         # use LWPCookieJar to persist cookies to disk
         cookieJar = cookielib.LWPCookieJar(tempfile.mkstemp()[1])
@@ -145,7 +145,7 @@ class Leechi(object):
         opener = urllib2.build_opener()
     else:
         opener = urllib2.build_opener(*handlers)
-    # Accept */* is needed for gh
+    # Accept */* is needed for some websites
     opener.addheaders = [("User-Agent", self.ua), ("Accept", "*/*")]
     self.opener = opener
 
