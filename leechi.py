@@ -51,12 +51,13 @@ class Leechi(object):
   # retry: if an error occurs during network operations, e.g. fetch() and fetchDelayed(),
   # the operation will be tried again. For both fetch() and fetchDelayed(),
   # the module will sleep a bit before retrying
-  def __init__(self, cookies=True, retry=3):
+  def __init__(self, cookies=True, retry=3, multiPart=False):
     # pick user agent string. will persist for the lifetime of the object
     self.useCookies = cookies
     self.useNewSleep = True
     self._tries = retry + 1
     self._lastTry = 0
+    self.multiPart = True
     self.chooseRandomUA()
 
   """
@@ -86,13 +87,13 @@ class Leechi(object):
   """
   Fetches content of URL.
   """
-  def fetch(self, URL):
+  def fetch(self, URL, params=""):
     # I was under the impression that read() may not always return the entire
     # content of the file-like object.
     # Consulting the documentation, it turns out that this is only the case
     # in "non-blocking mode". So let's hope this file-like object is in
     # blocking mode..
-    handle = self.obtainHandle(URL)
+    handle = self.obtainHandle(URL, params)
     return self._handleError(lambda: handle.read(), tries=self._tries, msg="Fetching URL %s" % URL)
     
   
@@ -102,9 +103,9 @@ class Leechi(object):
   The upper and lower bounds are configurable.
   """
   # TODO: make delay and mindelay configurable via ctor?
-  def fetchDelayed(self, URL, delay=DELAY, mindelay=MINDELAY):
-    self._sleep()
-    return self.fetch(URL)
+  def fetchDelayed(self, URL, delay=DELAY, mindelay=MINDELAY, params=""):
+    self._sleep(delay, mindelay)
+    return self.fetch(URL, params)
 
   # Do not use the opener member. Use this method to obtain a file handle for you
   # If you absolutely must use the opener member,
@@ -129,16 +130,21 @@ class Leechi(object):
 
   def _createOpener(self):
     # TODO: do we want to lose the cookies when re-creating the opener with a different UA?
+    handlers = []
+    if self.multiPart:
+        from MultiPartPostHandler import MultiPartPostHandler
+    	handlers.append(MultiPartPostHandler())
     if self.useCookies:
-      # use LWPCookieJar to persist cookies to disk
-      
-      cookieJar = cookielib.LWPCookieJar(tempfile.mkstemp()[1])
-      self.cookieJar = cookieJar
-      processor = urllib2.HTTPCookieProcessor(cookieJar)
-      opener = urllib2.build_opener(processor)
+        # use LWPCookieJar to persist cookies to disk
+        cookieJar = cookielib.LWPCookieJar(tempfile.mkstemp()[1])
+        self.cookieJar = cookieJar
+        processor = urllib2.HTTPCookieProcessor(cookieJar)
+        handlers.append(processor)
+    if len(handlers) == 0:
+        # fall back to default python configuration
+        opener = urllib2.build_opener()
     else:
-      # fall back to default python configuration
-      opener = urllib2.build_opener()
+        opener = urllib2.build_opener(handlers)
     # Accept */* is needed for gh
     opener.addheaders = [("User-Agent", self.ua), ("Accept", "*/*")]
     self.opener = opener
