@@ -4,12 +4,12 @@
 from distutils.core import setup
 
 setup(name='Leechi',
-      version='0.2',
+      version='0.3',
       description='Website crawler utility',
       author='Michael Haas',
       author_email='haas@computerlinguist.org',
       url='https://github.com/mhaas/leechi',
-      py_modules=['leechi'],
+      py_modules=['leechi', 'LeechiMultipartPostHandler'],
       classifiers = [ 'Development Status :: 4 - Beta',
                       'Intended Audience :: Developers',
                       'License :: OSI Approved :: GNU General Public License (GPL)',

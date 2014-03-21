@@ -132,7 +132,7 @@ class Leechi(object):
     # TODO: do we want to lose the cookies when re-creating the opener with a different UA?
     handlers = []
     if self.multiPart:
-        from MultipartPostHandler import MultipartPostHandler
+        from LeechiMultipartPostHandler import MultipartPostHandler
     	handlers.append(MultipartPostHandler())
     if self.useCookies:
         # use LWPCookieJar to persist cookies to disk
