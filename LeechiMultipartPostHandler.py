@@ -76,11 +76,11 @@ class MultipartPostHandler(urllib2.BaseHandler):
             if request.has_header('Content-Type'):
                 ct_header = request.get_header('Content-Type')
                 if ct_header.find('multipart/form-data') != 0:
-                    logger.debug("Replacing %s with %s",
-                                 request.get_header('content-type'),
-                                 'multipart/form-data')
+                    logger.warn("Replacing %s with %s",
+                                request.get_header('content-type'),
+                                'multipart/form-data')
             request.add_unredirected_header('Content-Type',
-                                                    contenttype)
+                                            contenttype)
             request.add_data(data)
         return request
 
@@ -91,7 +91,7 @@ class MultipartPostHandler(urllib2.BaseHandler):
             if isinstance(value, file):
                 filename = value.name.split('/')[-1]
                 contenttype = mimetypes.guess_type(
-                    filename)[0] or 'application/octet-stream'
+                    filename)[0] or 'text/plain' #'application/octet-stream'
                 buf.write('--%s\r\n' % boundary)
                 # note the trailing space here!
                 buf.write('Content-Disposition: form-data; ')
