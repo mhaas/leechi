@@ -79,7 +79,7 @@ class MultipartPostHandler(urllib2.BaseHandler):
                     logger.debug("Replacing %s with %s",
                                  request.get_header('content-type'),
                                  'multipart/form-data')
-                    request.add_unredirected_header('Content-Type',
+            request.add_unredirected_header('Content-Type',
                                                     contenttype)
             request.add_data(data)
         return request
