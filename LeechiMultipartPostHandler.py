@@ -47,8 +47,6 @@ import urllib2
 import mimetools
 import mimetypes
 import os
-#import stat
-import sys
 from cStringIO import StringIO
 import logging
 
@@ -73,21 +71,7 @@ class MultipartPostHandler(urllib2.BaseHandler):
     def http_request(self, request):
         data = request.get_data()
         if data is not None and type(data) != str:
-            v_files = []
-            v_vars = []
-            try:
-                for(key, value) in data.items():
-                    if type(value) == file:
-                        v_files.append((key, value))
-                    else:
-                        v_vars.append((key, value))
-            except TypeError:
-                systype, value, traceback = sys.exc_info()
-                raise (TypeError('not a valid non-string'
-                                 + ' sequence or mapping object'),
-                       None, traceback)
-
-            boundary, data = self.multipart_encode(v_vars, v_files)
+            boundary, data = self.multipart_encode(data)
             contenttype = 'multipart/form-data; boundary=%s' % boundary
             if request.has_header('Content-Type'):
                 ct_header = request.get_header('Content-Type')
@@ -97,30 +81,29 @@ class MultipartPostHandler(urllib2.BaseHandler):
                                  'multipart/form-data')
                     request.add_unredirected_header('Content-Type',
                                                     contenttype)
-
             request.add_data(data)
         return request
 
-    def multipart_encode(vars):
+    def multipart_encode(data):
         boundary = mimetools.choose_boundary()
         buf = StringIO()
-        for(key, value) in vars:
+        for(key, value) in data.iteritems():
             if isinstance(value, file):
-                #file_size = os.fstat(value.fileno())[stat.ST_SIZE]
                 filename = value.name.split('/')[-1]
                 contenttype = mimetypes.guess_type(
                     filename)[0] or 'application/octet-stream'
                 buf.write('--%s\r\n' % boundary)
-                buf.write(
-                    'Content-Disposition: form-data;')
+                # note the trailing space here!
+                buf.write('Content-Disposition: form-data; ')
                 buf.write('name="%s"; filename="%s"\r\n' % (key, filename))
                 buf.write('Content-Type: %s\r\n' % contenttype)
-                # buffer += 'Content-Length: %s\r\n' % file_size
                 value.seek(0)
                 buf.write('\r\n' + value.read() + '\r\n')
             else:
                 buf.write('--%s\r\n' % boundary)
-                buf.write('Content-Disposition: form-data; name="%s"' % key)
+                # note the trailing space here!
+                buf.write('Content-Disposition: form-data; ')
+                buf.write('name="%s"' % key)
                 buf.write('\r\n\r\n' + value + '\r\n')
         buf.write('--' + boundary + '--\r\n\r\n')
         buf = buf.getvalue()
