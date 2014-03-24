@@ -45,13 +45,13 @@ which do not want to be crawled.
 It can change its UA and features random delays between fetches.
 It can also handle session cookies which are required
 by some sites.
-""" 
+"""
 class Leechi(object):
 
   # retry: if an error occurs during network operations, e.g. fetch() and fetchDelayed(),
   # the operation will be tried again. For both fetch() and fetchDelayed(),
   # the module will sleep a bit before retrying
-  def __init__(self, cookies=True, retry=3, multiPart=False):
+  def __init__(self, cookies=True, retry=3, multiPart=False, debug=False):
     # pick user agent string. will persist for the lifetime of the object
     self.useCookies = cookies
     self.useNewSleep = True
@@ -59,6 +59,7 @@ class Leechi(object):
     self._lastTry = 0
     self.multiPart = multiPart
     self.referer = None
+    self.debug =  debug
     self.chooseRandomUA()
 
   """
@@ -113,8 +114,8 @@ class Leechi(object):
     # blocking mode..
     handle = self.obtainHandle(URL, params)
     return self._handleError(lambda: handle.read(), tries=self._tries, msg="Fetching URL %s" % URL)
-    
-  
+
+
   """
   Fetches content of URL after waiting for a random amount of time.
   The delay will be between 0 and 3 seconds by default.
@@ -149,6 +150,8 @@ class Leechi(object):
   def _createOpener(self):
     # TODO: do we want to lose the cookies when re-creating the opener with a different UA?
     handlers = []
+    if self.debug:
+        handlers.append(urllib2.HTTPHandler(debuglevel=1))
     if self.multiPart:
         from LeechiMultipartPostHandler import MultipartPostHandler
     	handlers.append(MultipartPostHandler())
