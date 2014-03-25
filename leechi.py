@@ -65,7 +65,7 @@ class Leechi(object):
     # retry: if an error occurs during network operations, e.g. fetch() and fetchDelayed(),
     # the operation will be tried again. For both fetch() and fetchDelayed(),
     # the module will sleep a bit before retrying
-    def __init__(self, cookies=True, retry=3, multiPart=False):
+    def __init__(self, cookies=True, retry=3, multiPart=False, debug=False):
         # pick user agent string. will persist for the lifetime of the object
         self.useCookies = cookies
         self.useNewSleep = True
@@ -73,6 +73,7 @@ class Leechi(object):
         self._lastTry = 0
         self.multiPart = multiPart
         self.referer = None
+        self.debug = debug
         self.chooseRandomUA()
 
     """
@@ -155,7 +156,12 @@ class Leechi(object):
         self._lastTry = time.time()
         logger.debug("URL is: %s",  URL)
         logger.debug("params is: %s", params)
-        return self._handleError(lambda: self.opener.open(URL, params), tries=self._tries, msg="Obtaining handle for URL %s" % URL)
+        if params == "" or params is None:
+            call = lambda: self.opener.open(URL)
+        else:
+            call = lambda: self.opener.open(URL, params)
+        return self._handleError(call, tries=self._tries,
+                                 msg="Obtaining handle for URL %s" % URL)
 
     """
   Returns file-like object after sleeping for a while.
@@ -170,6 +176,8 @@ class Leechi(object):
         # TODO: do we want to lose the cookies when re-creating the opener with
         # a different UA?
         handlers = []
+        if self.debug:
+            handlers.append(urllib2.HTTPHandler(debuglevel=1))
         if self.multiPart:
             from LeechiMultipartPostHandler import MultipartPostHandler
             handlers.append(MultipartPostHandler())
@@ -185,7 +193,7 @@ class Leechi(object):
         else:
             opener = urllib2.build_opener(*handlers)
         # Accept */* is needed for some websites
-        headers = [("User-Agent", self.ua)]  # , #("Accept", "*/*")]
+        headers = [("User-Agent", self.ua), ("Accept", "*/*")]
         if self.referer is not None:
             headers.append(('Referer', self.referer))
         opener.addheaders = headers
