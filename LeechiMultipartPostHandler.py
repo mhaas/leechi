@@ -44,11 +44,11 @@ Further Example:
 """
 
 import urllib2
-import mimetools
 import mimetypes
 import os
 from cStringIO import StringIO
 import logging
+from uuid import uuid4
 
 logger = logging.getLogger(__name__)
 
@@ -85,13 +85,18 @@ class MultipartPostHandler(urllib2.BaseHandler):
         return request
 
     def multipart_encode(data):
-        boundary = mimetools.choose_boundary()
+        # this used to be mimetools.choose_boundary
+        # but I like uuid4 better, which I took from the requests package.
+        # the additional hypens are needed to work around one particular
+        # broken server. Firefox and Chrome both use them, although the
+        # standard does not mandate them.
+        boundary = "---------------------------" + uuid4().hex
         buf = StringIO()
         for(key, value) in data.iteritems():
             if isinstance(value, file):
                 filename = value.name.split('/')[-1]
                 contenttype = mimetypes.guess_type(
-                    filename)[0] or 'text/plain' #'application/octet-stream'
+                    filename)[0] or 'application/octet-stream'
                 buf.write('--%s\r\n' % boundary)
                 # note the trailing space here!
                 buf.write('Content-Disposition: form-data; ')
